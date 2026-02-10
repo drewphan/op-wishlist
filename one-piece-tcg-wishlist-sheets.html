@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Piece TCG - Crew Wishlist (Google Sheets)</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bangers&family=Outfit:wght@300;400;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #E63946;
+            --secondary: #F4A261;
+            --accent: #2A9D8F;
+            --dark: #1D3557;
+            --light: #F1FAEE;
+            --shadow: rgba(29, 53, 87, 0.15);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #1D3557 0%, #457B9D 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        h1 {
+            font-family: 'Bangers', cursive;
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            color: var(--light);
+            text-shadow: 4px 4px 0px var(--primary),
+                         8px 8px 0px var(--secondary);
+            letter-spacing: 3px;
+            margin-bottom: 0.5rem;
+            transform: rotate(-2deg);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--secondary);
+            font-weight: 300;
+            letter-spacing: 2px;
+        }
+
+        .sync-status {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: var(--light);
+            backdrop-filter: blur(10px);
+        }
+
+        .sync-status.syncing {
+            background: rgba(244, 162, 97, 0.2);
+        }
+
+        .sync-status.error {
+            background: rgba(230, 57, 70, 0.2);
+        }
+
+        .input-section {
+            background: white;
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 40px var(--shadow);
+            animation: slideUp 0.6s ease-out 0.2s both;
+        }
+
+        .input-section h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .upload-zone {
+            border: 3px dashed var(--accent);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, rgba(42, 157, 143, 0.05), rgba(42, 157, 143, 0.1));
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-zone:hover {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, rgba(230, 57, 70, 0.05), rgba(230, 57, 70, 0.1));
+            transform: translateY(-2px);
+        }
+
+        .upload-zone.dragover {
+            border-color: var(--secondary);
+            background: linear-gradient(135deg, rgba(244, 162, 97, 0.1), rgba(244, 162, 97, 0.2));
+        }
+
+        .upload-preview {
+            max-width: 200px;
+            max-height: 280px;
+            margin: 1rem auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 2fr;
+            gap: 1rem;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            font-size: 0.95rem;
+        }
+
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(42, 157, 143, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem 2.5rem;
+            border-radius: 12px;
+            font-family: 'Bangers', cursive;
+            font-size: 1.3rem;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3);
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(230, 57, 70, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .dashboard {
+            animation: slideUp 0.6s ease-out 0.4s both;
+        }
+
+        .dashboard h2 {
+            font-family: 'Bangers', cursive;
+            font-size: 2.5rem;
+            color: var(--light);
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px var(--primary);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .card-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .card-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px var(--shadow);
+            transition: all 0.3s ease;
+            animation: cardAppear 0.4s ease-out both;
+        }
+
+        .card-container:hover {
+            transform: translateY(-8px) rotate(1deg);
+            box-shadow: 0 12px 40px rgba(29, 53, 87, 0.25);
+        }
+
+        .card-image-wrapper {
+            width: 100%;
+            padding-top: 140%;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+        }
+
+        .card-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .wants-list {
+            padding: 1.25rem;
+            background: linear-gradient(135deg, rgba(241, 250, 238, 0.8), rgba(241, 250, 238, 0.4));
+        }
+
+        .wants-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .want-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid var(--accent);
+            transition: all 0.2s ease;
+        }
+
+        .want-item:hover {
+            border-left-color: var(--primary);
+            transform: translateX(3px);
+        }
+
+        .want-item.completed {
+            opacity: 0.5;
+            border-left-color: #ccc;
+        }
+
+        .want-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .person-name {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .quantity-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .complete-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        .want-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .delete-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.2s ease;
+            font-family: 'Outfit', sans-serif;
+            text-decoration: none;
+        }
+
+        .want-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn:hover {
+            background: #c62828;
+            transform: scale(1.05);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .empty-state p {
+            color: var(--light);
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes cardAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .paste-info {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .card-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CREW WISHLIST</h1>
+            <p class="subtitle">One Piece TCG Card Tracker</p>
+            <div class="sync-status" id="syncStatus">🔄 Connecting to Google Sheets...</div>
+        </header>
+
+        <section class="input-section">
+            <h2>Add Card to Wishlist</h2>
+            <div class="form-grid">
+                <div class="upload-zone" id="uploadZone">
+                    <input type="file" id="imageInput" accept="image/*">
+                    <div id="uploadContent">
+                        <p style="font-size: 3rem; margin-bottom: 0.5rem;">📸</p>
+                        <p style="font-weight: 600; margin-bottom: 0.5rem;">Click to upload or drag & drop</p>
+                        <p style="color: #666; font-size: 0.9rem;">Card image (JPG, PNG, WEBP)</p>
+                        <div class="paste-info">💡 Or press Ctrl+V to paste</div>
+                    </div>
+                    <img id="preview" class="upload-preview hidden" alt="Card preview">
+                </div>
+
+                <div class="form-row">
+                    <div>
+                        <label for="quantity">Quantity Wanted</label>
+                        <input type="number" id="quantity" min="1" value="1" required>
+                    </div>
+                    <div></div>
+                    <div>
+                        <label for="person">Who Wants It?</label>
+                        <select id="person" required>
+                            <option value="">Select person...</option>
+                            <option value="Drew">Drew</option>
+                            <option value="Tommy">Tommy</option>
+                            <option value="Peter">Peter</option>
+                            <option value="Matthew">Matthew</option>
+                            <option value="Theo">Theo</option>
+                            <option value="Bryan">Bryan</option>
+                            <option value="Suhau">Suhau</option>
+                            <option value="Aaron">Aaron</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-primary" id="addButton">Add to Wishlist</button>
+            </div>
+        </section>
+
+        <section class="dashboard">
+            <h2>Group Wishlist</h2>
+            <div id="cardGrid" class="card-grid"></div>
+            <div id="emptyState" class="empty-state">
+                <p>🏴‍☠️ No cards in the wishlist yet!</p>
+                <p style="font-size: 0.9rem;">Add your first card above to get started</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        console.log('Script loaded');
+        
+        // IMPORTANT: Replace this with your Google Apps Script Web App URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSZ1gzPh4kuztg-b1kjz3v-b1G_mU0LvNBfxDtsTF2I150xx0-F3XknzfEJZWCNdxNDQ/exec';
+        
+        let currentImageData = null;
+        let isSyncing = false;
+
+        // Update sync status display
+        function updateSyncStatus(message, type = 'normal') {
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.textContent = message;
+            statusEl.className = 'sync-status';
+            if (type === 'syncing') {
+                statusEl.classList.add('syncing');
+            } else if (type === 'error') {
+                statusEl.classList.add('error');
+            }
+        }
+
+        // Load wishlist from Google Sheets
+        async function loadWishlist() {
+            try {
+                updateSyncStatus('📥 Loading from Google Sheets...', 'syncing');
+                
+                const response = await fetch(GOOGLE_SCRIPT_URL + '?action=load');
+                const result = await response.json();
+                
+                console.log('Load result:', result);
+                
+                if (result.success) {
+                    updateSyncStatus('✅ Synced with Google Sheets');
+                    return result.data;
+                } else {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+            } catch (error) {
+                console.error('Error loading wishlist:', error);
+                updateSyncStatus('❌ Failed to load from Google Sheets', 'error');
+                alert('Failed to load wishlist. Please check your Google Apps Script URL and setup.');
+                return { cards: [] };
+            }
+        }
+
+        // Save wishlist to Google Sheets
+        async function saveWishlist(data) {
+            try {
+                updateSyncStatus('📤 Saving to Google Sheets...', 'syncing');
+                isSyncing = true;
+                
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        action: 'save',
+                        data: JSON.stringify(data)
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Save result:', result);
+                
+                if (result.success) {
+                    updateSyncStatus('✅ Synced with Google Sheets');
+                    isSyncing = false;
+                    return true;
+                } else {
+                    throw new Error(result.error || 'Failed to save data');
+                }
+            } catch (error) {
+                console.error('Error saving wishlist:', error);
+                updateSyncStatus('❌ Failed to save to Google Sheets', 'error');
+                alert('Failed to save wishlist: ' + error.message);
+                isSyncing = false;
+                return false;
+            }
+        }
+
+        // Image handling functions
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentImageData = e.target.result;
+                const preview = document.getElementById('preview');
+                const uploadContent = document.getElementById('uploadContent');
+                preview.src = currentImageData;
+                preview.classList.remove('hidden');
+                uploadContent.style.display = 'none';
+                console.log('Image processed');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Set up image upload
+        const uploadZone = document.getElementById('uploadZone');
+        const imageInput = document.getElementById('imageInput');
+
+        uploadZone.addEventListener('click', () => {
+            imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                processImage(file);
+            }
+        });
+
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                processImage(file);
+            }
+        });
+
+        // Paste functionality
+        document.addEventListener('paste', (e) => {
+            const items = e.clipboardData?.items;
+            if (!items) return;
+            
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') !== -1) {
+                    const blob = items[i].getAsFile();
+                    processImage(blob);
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
+
+        // Add button click handler
+        const addButton = document.getElementById('addButton');
+        console.log('Add button found:', addButton !== null);
+        
+        addButton.addEventListener('click', async () => {
+            console.log('Add button clicked!');
+
+            if (isSyncing) {
+                alert('Please wait, currently syncing...');
+                return;
+            }
+
+            if (!currentImageData) {
+                alert('Please upload a card image first');
+                return;
+            }
+
+            const quantity = parseInt(document.getElementById('quantity').value);
+            const person = document.getElementById('person').value;
+
+            if (!person) {
+                alert('Please select who wants this card');
+                return;
+            }
+
+            console.log('Form data:', { quantity, person });
+
+            addButton.disabled = true;
+
+            try {
+                const wishlist = await loadWishlist();
+                console.log('Current wishlist:', wishlist);
+
+                // Generate unique card ID
+                const cardId = 'card_' + Date.now();
+
+                // Check if card already exists
+                const existingCard = wishlist.cards.find(c => c.imageData === currentImageData);
+
+                if (existingCard) {
+                    console.log('Adding to existing card');
+                    existingCard.wants.push({
+                        id: 'want_' + Date.now(),
+                        person,
+                        quantity,
+                        completed: false
+                    });
+                } else {
+                    console.log('Creating new card');
+                    wishlist.cards.push({
+                        id: cardId,
+                        imageData: currentImageData,
+                        wants: [{
+                            id: 'want_' + Date.now(),
+                            person,
+                            quantity,
+                            completed: false
+                        }]
+                    });
+                }
+
+                const saved = await saveWishlist(wishlist);
+                if (saved) {
+                    await renderDashboard();
+
+                    // Reset form
+                    document.getElementById('quantity').value = '1';
+                    document.getElementById('person').value = '';
+                    currentImageData = null;
+                    document.getElementById('preview').classList.add('hidden');
+                    document.getElementById('uploadContent').style.display = 'block';
+                    
+                    console.log('Card added successfully');
+                }
+            } catch (error) {
+                console.error('Error in form submission:', error);
+                alert('Error adding card: ' + error.message);
+            } finally {
+                addButton.disabled = false;
+            }
+        });
+
+        // Render dashboard
+        async function renderDashboard() {
+            const wishlist = await loadWishlist();
+            const cardGrid = document.getElementById('cardGrid');
+            const emptyState = document.getElementById('emptyState');
+
+            if (wishlist.cards.length === 0) {
+                cardGrid.innerHTML = '';
+                emptyState.style.display = 'block';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            
+            cardGrid.innerHTML = wishlist.cards.map((card, index) => `
+                <div class="card-container" style="animation-delay: ${index * 0.05}s">
+                    <div class="card-image-wrapper">
+                        <img src="${card.imageData}" alt="Card" class="card-image">
+                    </div>
+                    <div class="wants-list">
+                        <div class="wants-title">Wanted By:</div>
+                        ${card.wants.map(want => `
+                            <div class="want-item ${want.completed ? 'completed' : ''}">
+                                <div class="want-info">
+                                    <span class="person-name">${want.person}</span>
+                                    <span class="quantity-badge">×${want.quantity}</span>
+                                </div>
+                                <div class="want-actions">
+                                    <button 
+                                        class="delete-btn" 
+                                        onclick="deleteWant('${card.id}', '${want.id}')"
+                                        aria-label="Delete want"
+                                    >Delete</button>
+                                    <input 
+                                        type="checkbox" 
+                                        class="complete-checkbox" 
+                                        ${want.completed ? 'checked' : ''}
+                                        onchange="toggleComplete('${card.id}', '${want.id}')"
+                                        aria-label="Mark as complete"
+                                    >
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Toggle complete status
+        window.toggleComplete = async function(cardId, wantId) {
+            if (isSyncing) return;
+            
+            const wishlist = await loadWishlist();
+            const card = wishlist.cards.find(c => c.id === cardId);
+            if (card) {
+                const want = card.wants.find(w => w.id === wantId);
+                if (want) {
+                    want.completed = !want.completed;
+                    await saveWishlist(wishlist);
+                    await renderDashboard();
+                }
+            }
+        };
+
+        // Delete a want entry
+        window.deleteWant = async function(cardId, wantId) {
+            if (isSyncing) return;
+            
+            console.log('Delete clicked:', cardId, wantId);
+
+            try {
+                const wishlist = await loadWishlist();
+                console.log('Wishlist loaded:', wishlist);
+                
+                const card = wishlist.cards.find(c => c.id === cardId);
+                console.log('Card found:', card);
+                
+                if (card) {
+                    // Remove the want from the card
+                    const beforeCount = card.wants.length;
+                    card.wants = card.wants.filter(w => w.id !== wantId);
+                    console.log('Wants before:', beforeCount, 'after:', card.wants.length);
+                    
+                    // If no wants left, remove the entire card
+                    if (card.wants.length === 0) {
+                        console.log('No wants left, removing entire card');
+                        wishlist.cards = wishlist.cards.filter(c => c.id !== cardId);
+                    }
+                    
+                    const saved = await saveWishlist(wishlist);
+                    console.log('Saved:', saved);
+                    
+                    if (saved) {
+                        await renderDashboard();
+                        console.log('Dashboard re-rendered - delete successful!');
+                    }
+                }
+            } catch (error) {
+                console.error('Error deleting want:', error);
+                alert('Error deleting entry: ' + error.message);
+            }
+        };
+
+        // Initial render
+        console.log('Initializing dashboard...');
+        renderDashboard();
+
+        // Auto-refresh every 30 seconds to stay in sync
+        setInterval(() => {
+            if (!isSyncing) {
+                renderDashboard();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
