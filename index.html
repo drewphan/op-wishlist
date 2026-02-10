@@ -616,7 +616,7 @@
         }
 
         // Image handling functions
-        function compressImage(base64Image, maxWidth = 200) {
+        function compressImage(base64Image, maxWidth = 250) {
             return new Promise((resolve, reject) => {
                 const img = new Image();
                 img.onload = () => {
@@ -640,12 +640,25 @@
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
 
-                        // Compress to JPEG at 40% quality (very aggressive)
-                        const compressed = canvas.toDataURL('image/jpeg', 0.4);
-                        console.log('Compressed data length:', compressed.length);
+                        // Try 70% quality first
+                        let compressed = canvas.toDataURL('image/jpeg', 0.7);
+                        console.log('Compressed data length (70%):', compressed.length);
+                        
+                        // If still too large, reduce quality incrementally
+                        if (compressed.length > 48000) {
+                            console.log('Image too large, trying 60% quality');
+                            compressed = canvas.toDataURL('image/jpeg', 0.6);
+                            console.log('Compressed data length (60%):', compressed.length);
+                        }
                         
                         if (compressed.length > 48000) {
-                            console.warn('Image still large after compression:', compressed.length);
+                            console.log('Still too large, trying 50% quality');
+                            compressed = canvas.toDataURL('image/jpeg', 0.5);
+                            console.log('Compressed data length (50%):', compressed.length);
+                        }
+                        
+                        if (compressed.length > 48000) {
+                            console.warn('Warning: Image may be too large for Google Sheets');
                         }
                         
                         resolve(compressed);
