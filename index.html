@@ -482,17 +482,17 @@
                     <div></div>
                     <div>
                         <label for="person">Who Wants It?</label>
-                            <select id="person" required>
-                                <option value="">Select person...</option>
-                                <option value="Aaron">Aaron</option>
-                                <option value="Bryan">Bryan</option>
-                                <option value="Drew">Drew</option>
-                                <option value="Matthew">Matthew</option>
-                                <option value="Peter">Peter</option>
-                                <option value="Suhau">Suhau</option>
-                                <option value="Theo">Theo</option>
-                                <option value="Tommy">Tommy</option>
-                            </select>
+                        <select id="person" required>
+                            <option value="">Select person...</option>
+                            <option value="Drew">Drew</option>
+                            <option value="Tommy">Tommy</option>
+                            <option value="Peter">Peter</option>
+                            <option value="Matthew">Matthew</option>
+                            <option value="Theo">Theo</option>
+                            <option value="Bryan">Bryan</option>
+                            <option value="Suhau">Suhau</option>
+                            <option value="Aaron">Aaron</option>
+                        </select>
                     </div>
                 </div>
 
@@ -514,7 +514,7 @@
         console.log('Script loaded');
         
         // IMPORTANT: Replace this with your Google Apps Script Web App URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzH12vm4xZWtO82t6OZfwHJXOfpCMDQOSJTMqXO88CHtyumhGr0V9VJh2fpjCuaT6oxEg/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSZ1gzPh4kuztg-b1kjz3v-b1G_mU0LvNBfxDtsTF2I150xx0-F3XknzfEJZWCNdxNDQ/exec';
         
         let currentImageData = null;
         let isSyncing = false;
@@ -616,7 +616,7 @@
         }
 
         // Image handling functions
-        function compressImage(base64Image, maxWidth = 400) {
+        function compressImage(base64Image, maxWidth = 300) {
             return new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
@@ -635,8 +635,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Compress to JPEG at 70% quality
-                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                    // Compress to JPEG at 50% quality (more aggressive)
+                    resolve(canvas.toDataURL('image/jpeg', 0.5));
                 };
                 img.src = base64Image;
             });
