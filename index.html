@@ -250,6 +250,35 @@
             object-fit: cover;
         }
 
+        .delete-card-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(230, 57, 70, 0.9);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .card-container:hover .delete-card-btn {
+            opacity: 1;
+        }
+
+        .delete-card-btn:hover {
+            background: #c62828;
+            transform: scale(1.1);
+        }
+
         .wants-list {
             padding: 1.25rem;
             background: linear-gradient(135deg, rgba(241, 250, 238, 0.8), rgba(241, 250, 238, 0.4));
@@ -454,15 +483,15 @@
                     <div>
                         <label for="person">Who Wants It?</label>
                         <select id="person" required>
-                                <option value="">Select person...</option>
-                                <option value="Aaron">Aaron</option>
-                                <option value="Bryan">Bryan</option>
-                                <option value="Drew">Drew</option>
-                                <option value="Matthew">Matthew</option>
-                                <option value="Peter">Peter</option>
-                                <option value="Suhau">Suhau</option>
-                                <option value="Theo">Theo</option>
-                                <option value="Tommy">Tommy</option>
+                            <option value="">Select person...</option>
+                            <option value="Drew">Drew</option>
+                            <option value="Tommy">Tommy</option>
+                            <option value="Peter">Peter</option>
+                            <option value="Matthew">Matthew</option>
+                            <option value="Theo">Theo</option>
+                            <option value="Bryan">Bryan</option>
+                            <option value="Suhau">Suhau</option>
+                            <option value="Aaron">Aaron</option>
                         </select>
                     </div>
                 </div>
@@ -485,7 +514,7 @@
         console.log('Script loaded');
         
         // IMPORTANT: Replace this with your Google Apps Script Web App URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxznr7Xs4OeKSGA0ncamgQS4k8Z9bU5tffVPxZuMTBrr9urXRXMEvfU-TjHEpWBfv_m/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxSZ1gzPh4kuztg-b1kjz3v-b1G_mU0LvNBfxDtsTF2I150xx0-F3XknzfEJZWCNdxNDQ/exec';
         
         let currentImageData = null;
         let isSyncing = false;
@@ -778,6 +807,9 @@
                 <div class="card-container" style="animation-delay: ${index * 0.05}s">
                     <div class="card-image-wrapper">
                         <img src="${card.imageData}" alt="Card" class="card-image">
+                        <button class="delete-card-btn" onclick="deleteCard('${card.id}')" aria-label="Delete entire card">
+                            🗑️
+                        </button>
                     </div>
                     <div class="wants-list">
                         <div class="wants-title">Wanted By:</div>
@@ -828,7 +860,7 @@
         window.deleteWant = async function(cardId, wantId) {
             if (isSyncing) return;
             
-            console.log('Delete clicked:', cardId, wantId);
+            console.log('Delete want clicked:', cardId, wantId);
 
             try {
                 const wishlist = await loadWishlist();
@@ -860,6 +892,30 @@
             } catch (error) {
                 console.error('Error deleting want:', error);
                 alert('Error deleting entry: ' + error.message);
+            }
+        };
+
+        // Delete entire card
+        window.deleteCard = async function(cardId) {
+            if (isSyncing) return;
+            
+            console.log('Delete card clicked:', cardId);
+
+            try {
+                const wishlist = await loadWishlist();
+                
+                // Remove the card
+                wishlist.cards = wishlist.cards.filter(c => c.id !== cardId);
+                
+                const saved = await saveWishlist(wishlist);
+                
+                if (saved) {
+                    await renderDashboard();
+                    console.log('Card deleted successfully!');
+                }
+            } catch (error) {
+                console.error('Error deleting card:', error);
+                alert('Error deleting card: ' + error.message);
             }
         };
 
