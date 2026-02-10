@@ -511,17 +511,27 @@
                 const result = await response.json();
                 
                 console.log('Load result:', result);
-                
-                if (result.success) {
-                    updateSyncStatus('✅ Synced with Google Sheets');
-                    return result.data;
-                } else {
+
+                // Handle all possible response shapes gracefully
+                let cards = [];
+                if (result && result.success) {
+                    if (result.data && Array.isArray(result.data.cards)) {
+                        cards = result.data.cards;
+                    } else if (Array.isArray(result.cards)) {
+                        cards = result.cards;
+                    } else if (result.data && Array.isArray(result.data)) {
+                        cards = result.data;
+                    }
+                } else if (result && !result.success) {
                     throw new Error(result.error || 'Failed to load data');
                 }
+
+                updateSyncStatus('✅ Synced with Google Sheets');
+                return { cards };
+
             } catch (error) {
                 console.error('Error loading wishlist:', error);
                 updateSyncStatus('❌ Failed to load from Google Sheets', 'error');
-                alert('Failed to load wishlist. Please check your Google Apps Script URL and setup.');
                 return { cards: [] };
             }
         }
