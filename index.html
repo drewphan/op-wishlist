@@ -573,16 +573,45 @@
         }
 
         // Image handling functions
+        function compressImage(base64Image, maxWidth = 400) {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    // Resize if needed
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    // Compress to JPEG at 70% quality
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.src = base64Image;
+            });
+        }
+
         function processImage(file) {
             const reader = new FileReader();
-            reader.onload = (e) => {
-                currentImageData = e.target.result;
+            reader.onload = async (e) => {
+                // Compress the image before storing
+                const compressed = await compressImage(e.target.result);
+                currentImageData = compressed;
+                
                 const preview = document.getElementById('preview');
                 const uploadContent = document.getElementById('uploadContent');
-                preview.src = currentImageData;
+                preview.src = compressed;
                 preview.classList.remove('hidden');
                 uploadContent.style.display = 'none';
-                console.log('Image processed');
+                console.log('Image processed and compressed');
             };
             reader.readAsDataURL(file);
         }
